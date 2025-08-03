@@ -1,0 +1,33 @@
+name: Build Windows EXE
+
+on: [push, workflow_dispatch]  # Triggers on push or manual run
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'  # Matches requirements (>=3.7)
+
+    - name: Install PyInstaller and package with dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install .  # Installs the package and auto-pulls install_requires from setup.py (Windows-specific deps included)
+
+    - name: Build with PyInstaller
+      run: pyinstaller --onefile --name pypykatz pypykatz/__main__.py --hidden-import=minikerberos --hidden-import=aiowinreg --hidden-import=msldap --hidden-import=winacl --hidden-import=asn1crypto --hidden-import=asyauth --hidden-import=minidump  # Updated entry point; hidden-imports for common deps to avoid bundling errors
+
+    - name: Test the executable (optional)
+      run: dist\pypykatz.exe --help  # Should display CLI help if successful
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-exe
+        path: dist/pypykatz.exe
