@@ -22,11 +22,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
-        pip install .  # Installs pypykatz and pulls dependencies from setup.py (e.g., minidump, minikerberos, aiowinreg, msldap, winacl, asn1crypto, asyauth)
+        pip install .
+        pip install pycryptodomex cryptography  # Install crypto backends for unicrypto (preferred: pycryptodomex; fallback: cryptography)
 
     - name: Build with PyInstaller
-      run: pyinstaller --onefile --name pypykatz pypykatz/__main__.py --hidden-import=minidump --hidden-import=minikerberos --hidden-import=aiowinreg --hidden-import=msldap --hidden-import=winacl --hidden-import=asn1crypto --hidden-import=asyauth
-      # Entry point is pypykatz/__main__.py (calls main()); hidden-imports ensure all deps are bundled
+      run: pyinstaller --onefile --name pypykatz pypykatz/__main__.py --hidden-import=minidump --hidden-import=minikerberos --hidden-import=aiowinreg --hidden-import=msldap --hidden-import=winacl --hidden-import=asn1crypto --hidden-import=asyauth --hidden-import=unicrypto.backends.pycryptodomex --hidden-import=unicrypto.backends.cryptography --hidden-import=unicrypto.backends.purepython
+      # Added hidden-imports for unicrypto backends to fix dynamic import issues
 
     - name: Test the executable
       run: dist\pypykatz.exe --help  # Verifies CLI works; outputs help text
