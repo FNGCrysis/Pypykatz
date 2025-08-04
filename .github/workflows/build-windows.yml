@@ -18,17 +18,18 @@ jobs:
       with:
         python-version: '3.10'  # Matches pypykatz requirements (>=3.7)
 
-    - name: Install PyInstaller and package dependencies
+    - name: Install PyInstaller and pinned dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
-        pip install minikerberos==0.3.5 rekall-lib  # Pin minikerberos and add rekall-lib
+        pip install unicrypto==0.0.9 minidump==0.0.21 minikerberos==0.3.5 aiowinreg==0.0.7 msldap==0.4.1 winacl==0.1.5 aiosmb==0.4.2 aesedb==0.1.0 tqdm
         pip install pycryptodomex cryptography  # Crypto backends for unicrypto
-        pip install .  # Installs pypykatz and remaining dependencies
+	pip install rekall rekall_lib
+        pip install .  # Installs pypykatz (uses pinned deps above)
 
     - name: Build with PyInstaller
-      run: pyinstaller --onefile --name pypykatz pypykatz/__main__.py --hidden-import=minidump --hidden-import=minikerberos --hidden-import=aiowinreg --hidden-import=msldap --hidden-import=winacl --hidden-import=asn1crypto --hidden-import=asyauth --hidden-import=unicrypto.backends.pycryptodomex --hidden-import=unicrypto.backends.cryptography --hidden-import=unicrypto.backends.purepython --hidden-import=rekall --hidden-import=rekall_lib --collect-all=minikerberos
-      # Added rekall/rekall_lib hidden-imports; kept collect-all for minikerberos
+      run: pyinstaller --onefile --name pypykatz pypykatz/__main__.py --hidden-import=minidump --hidden-import=minikerberos --hidden-import=aiowinreg --hidden-import=msldap --hidden-import=winacl --hidden-import=asn1crypto --hidden-import=asyauth --hidden-import=unicrypto.backends.pycryptodomex --hidden-import=unicrypto.backends.cryptography --hidden-import=unicrypto.backends.purepython --collect-all=minikerberos --hidden-import=rekall --hidden-import=rekall_lib
+      # Collect-all for minikerberos to ensure all submodules are included
 
     - name: Test the executable
       run: dist\pypykatz.exe --help  # Verifies CLI works; outputs help text
